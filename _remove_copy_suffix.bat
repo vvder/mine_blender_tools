@@ -1,43 +1,30 @@
 @echo off
 chcp 65001 >nul
-echo Processing files with "（副本）" suffix in current directory...
+setlocal enabledelayedexpansion
+
+echo Processing files ending with "（副本）"...
 echo.
 
-rem Recursively loop through all files in current directory and subdirectories
 for /r %%F in (*) do (
-    rem Enable delayed variable expansion
-    setlocal enabledelayedexpansion
-    
-    rem Get filename with extension (without path)
     set "filename=%%~nxF"
     
-    rem Check if filename contains "（副本）"
-    if "!filename:（副本）=!" neq "!filename!" (
-        rem File contains "（副本）" suffix
-        echo Checking: "%%F" - Contains "（副本）" suffix
+    rem 只匹配结尾是（副本）
+    if "!filename:~-5!"=="（副本）" (
         
-        rem Generate new filename (remove "（副本）")
-        set "newfilename=!filename:（副本）=!"
-        rem Combine with directory path to get new full path
-        set "newfile=%%~dpF!newfilename!"
+        set "newfilename=!filename:~0,-5!"
         
-        rem Check if new filename already exists
-        if not exist "!newfile!" (
-            rem Perform rename operation
-            echo Renaming: "%%F" → "!newfile!"
-            ren "%%F" "!newfile!"
+        if not exist "%%~dpF!newfilename!" (
+            echo Renaming:
+            echo    Old: %%F
+            echo    New: %%~dpF!newfilename!
+            ren "%%F" "!newfilename!"
+            echo.
         ) else (
-            rem New filename already exists, skip
-            echo Skipping: "%%F" - Target file "!newfile!" already exists
+            echo Skipped (exists): %%F
         )
-    ) else (
-        rem File does not contain "（副本）" suffix
-        echo Checking: "%%F" - No "（副本）" suffix
     )
-    
-    endlocal
 )
 
-echo.
-echo Processing completed!
+echo Done.
 pause
+endlocal
